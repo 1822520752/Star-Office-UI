@@ -257,20 +257,20 @@
         #asset-list::-webkit-scrollbar-track { background: #0b1220; }
         #asset-list::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 0; border: 1px solid #111827; }
         #asset-upload-panel {
-            position: fixed;
-            right: 8px;
-            bottom: 8px;
-            width: calc(min(420px, 92vw) - 16px);
-            max-width: calc(92vw - 16px);
+            position: fixed !important;
+            right: max(8px, env(safe-area-inset-right, 0px));
+            bottom: max(8px, env(safe-area-inset-bottom, 0px));
+            width: min(420px, calc(100vw - 16px));
+            max-width: calc(100vw - 16px);
             box-sizing: border-box;
             margin-top: 0;
-            background: rgba(15, 23, 42, 0.94);
-            border: 1px solid rgba(148, 163, 184, 0.24);
+            background: rgba(11, 18, 32, 0.96);
+            border: 1px solid rgba(71, 85, 105, 0.75);
             border-radius: 10px;
             padding: 10px;
             z-index: 1000030;
             display: none;
-            box-shadow: 0 10px 28px rgba(0,0,0,.40);
+            box-shadow: 0 12px 30px rgba(0,0,0,.45);
             backdrop-filter: blur(2px);
         }
         #asset-upload-panel.active {
@@ -283,11 +283,19 @@
         }
         .asset-upload-grid > button {
             width: 100%;
-            min-height: 34px;
+            min-height: 36px;
             padding: 6px 8px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            background: #111827;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+        }
+        .asset-upload-grid > button:hover {
+            background: #1f2937;
+            border-color: #475569;
+            color: #f8fafc;
         }
         .asset-item {
             border: 1px solid rgba(148, 163, 184, 0.16);
@@ -1021,10 +1029,10 @@
             .asset-path { font-size: 11px; line-height: 1.3; }
             .asset-sub { font-size: 10px; }
             #asset-upload-panel {
-                right: 8px;
-                bottom: 8px;
-                width: calc(92vw - 16px);
-                max-width: calc(92vw - 16px);
+                right: max(8px, env(safe-area-inset-right, 0px));
+                bottom: max(8px, env(safe-area-inset-bottom, 0px));
+                width: calc(100vw - 16px);
+                max-width: calc(100vw - 16px);
                 padding: 8px;
             }
             .asset-upload-grid {
