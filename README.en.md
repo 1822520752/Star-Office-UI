@@ -2,25 +2,18 @@
 
 🌐 Language: [中文](./README.md) | **English** | [日本語](./README.ja.md)
 
-![Star Office UI Cover 2](docs/screenshots/readme-cover-2.jpg)
+![Star Office UI Cover](docs/screenshots/readme-cover-2.jpg)
 
-A pixel office dashboard for multi-agent collaboration: visualize your AI assistants' (OpenClaw / "lobster") work status in real time, helping teams intuitively see "who is doing what, what they did yesterday, and whether they are online now."
+**A pixel office dashboard for multi-agent collaboration** — visualize your AI assistants' (OpenClaw / "lobster") work status in real time, so you can see at a glance who's doing what, what they did yesterday, and whether they're online.
 
 > This is a **co-created project by Ring Hyacinth and Simon Lee**.
 
 ---
 
-## What is this project? (In one sentence)
-
-Star Office UI is a "multi-person collaboration status dashboard"—think of it as:
-> A real-time "pixel office dashboard": your AI assistants (and other agents you invite) automatically move to different areas based on their status (breakroom / desk / bug area), and you can also see a micro-summary of their work from yesterday.
-
----
-
-## ✨ 30-second Quick Start (Recommended)
+## ✨ 30-Second Quick Start
 
 ```bash
-# 1) Clone repository
+# 1) Clone the repo
 git clone https://github.com/ringhyacinth/Star-Office-UI.git
 cd Star-Office-UI
 
@@ -30,91 +23,44 @@ python3 -m pip install -r backend/requirements.txt
 # 3) Initialize state file (first run)
 cp state.sample.json state.json
 
-# 4) Start backend
+# 4) Start the backend
 cd backend
 python3 app.py
 ```
 
-Open: **http://127.0.0.1:18791**
+Open **http://127.0.0.1:18791** and try switching states:
 
-Try changing states (run from project root):
 ```bash
 python3 set_state.py writing "Organizing documents"
-python3 set_state.py syncing "Syncing progress"
 python3 set_state.py error "Found an issue, debugging"
 python3 set_state.py idle "Standing by"
 ```
-![Star Office UI Cover 1](docs/screenshots/readme-cover-1.jpg)
----
 
-## I. What does this project do?
-
-Star Office UI currently provides:
-
-1. **Visualize lobster work status**
-   - States: `idle`, `writing`, `researching`, `executing`, `syncing`, `error`
-   - States map to different areas in the office and are shown with animations / bubbles.
-
-2. **"Yesterday Memo" micro-summary**
-   - A "Yesterday Memo" card in the UI.
-   - Backend reads yesterday’s (or most recent available) records from `memory/*.md` and displays them after basic privacy sanitization.
-
-3. **Support inviting other guests to join the office (feature ongoing)**
-   - Join via join key.
-   - Guests can continuously push their status to the office dashboard.
-   - Currently usable, but overall interaction and onboarding experience are still being optimized.
-
-4. **Mobile-friendly access**
-   - Mobile devices can directly open and view status (great for quick checks on the go).
-
-5. **Trilingual UI (Chinese / English / Japanese)**
-   - CN / EN / JP language switching.
-   - Language changes apply in real time to UI text, loading prompts, and character bubbles.
-
-6. **Customizable art assets**
-   - Replace character/scene assets via the asset sidebar.
-   - Safe frame cuts and parameter sync (frame size / frame range) to avoid flickering.
-
-7. **Bring-your-own image API (infinite background changes)**
-   - Connect your own image-generation API for "move to new home / find agent" style background updates.
-   - Recommended models: `nanobanana-pro` or `nanobanana-2` (more stable structure preservation).
-   - Core dashboard functionality does not depend on an API; you can use the core status dashboard and asset management without connecting an API.
-
-8. **Flexible public access options**
-   - Skill defaults to using Cloudflare Tunnel for quick public access.
-   - You can also use your own public domain / reverse proxy setup.
+![Star Office UI Preview](docs/screenshots/readme-cover-1.jpg)
 
 ---
 
-## II. Core changes in this rebuild (2026-03)
+## 📋 Features
 
-This version is not a patchwork update—it is a complete rebuild based on the original project. The core changes are focused on four areas:
-
-1. **Added trilingual support (CN / EN / JP)**
-   - Full UI localization in three languages.
-   - State text, prompts, and asset display names switch together.
-
-2. **Added asset management (full user customization of art assets)**
-   - Asset sidebar supports selecting, replacing, and managing defaults.
-   - Users can customize characters, scenes, decorations, buttons, and more.
-
-3. **Integrated image generation API (smart room renovation + manual renovation)**
-   - Supports workflows like "Move Home / Find Agent / DIY Decor."
-   - OpenClaw can redesign rooms via image generation; users can also manually input themes.
-
-4. **Art asset replacement & optimization (key focus)**
-   - Core assets were replaced/redrawn at scale.
-   - Rebuilt naming and index mapping for better stability and maintainability.
-   - Optimized frame-cutting and rendering logic to reduce wrong-frame/cache interference.
+1. **Status Visualization** — 6 states (`idle` / `writing` / `researching` / `executing` / `syncing` / `error`) mapped to different office areas with animated sprites and speech bubbles
+2. **Yesterday Memo** — Automatically reads the latest daily log from `memory/*.md`, sanitizes it, and displays it as a "Yesterday Memo" card
+3. **Multi-Agent Collaboration** — Invite other agents to join your office via join keys and see everyone's status in real time
+4. **Trilingual UI** — Switch between Chinese, English, and Japanese with one click; all UI text, bubbles, and loading messages update instantly
+5. **Custom Art Assets** — Manage characters, scenes, and decorations through the sidebar; dynamic frame sync prevents flickering
+6. **AI-Powered Room Design** — Connect your own Gemini API to generate new office backgrounds (recommended: `nanobanana-pro` / `nanobanana-2`); core features work fine without an API
+7. **Mobile-Friendly** — Open on your phone for a quick status check on the go
+8. **Security Hardening** — Sidebar password protection, weak-password blocking in production, hardened session cookies
+9. **Flexible Public Access** — Use Cloudflare Tunnel for instant public access, or bring your own domain / reverse proxy
+10. **Desktop Pet Mode** — Optional Tauri desktop wrapper that turns the office into a transparent desktop widget (see below)
 
 ---
 
-## III. Quick Start
+## 🚀 Getting Started
 
 ### 1) Install dependencies
 
 ```bash
-cd star-office-ui
+cd Star-Office-UI
 python3 -m pip install -r backend/requirements.txt
 ```
 
@@ -124,16 +70,16 @@ python3 -m pip install -r backend/requirements.txt
 cp state.sample.json state.json
 ```
 
-### 3) Start backend
+### 3) Start the backend
 
 ```bash
 cd backend
 python3 app.py
 ```
 
-Open: `http://127.0.0.1:18791`
+Open `http://127.0.0.1:18791`
 
-### 4) Switch main Agent status (example)
+### 4) Switch states
 
 ```bash
 python3 set_state.py writing "Organizing documents"
@@ -142,227 +88,181 @@ python3 set_state.py error "Found an issue, debugging"
 python3 set_state.py idle "Standing by"
 ```
 
----
+### 5) Public access (optional)
 
-## IV. Common APIs
+```bash
+cloudflared tunnel --url http://127.0.0.1:18791
+```
 
-- `GET /health`: Health check
-- `GET /status`: Main Agent status
-- `POST /set_state`: Set main Agent status
-- `GET /agents`: Get multi-Agent list
-- `POST /join-agent`: Guest joins
-- `POST /agent-push`: Guest pushes status
-- `POST /leave-agent`: Guest leaves
-- `GET /yesterday-memo`: Yesterday memo
+Share the `https://xxx.trycloudflare.com` link with anyone.
 
 ---
 
-## V. Art asset usage notes (please read)
+## 🦞 For OpenClaw Users
 
-### Guest character asset source
+> If you're using [OpenClaw](https://openclaw.com), these three steps deeply integrate your lobster with the pixel office.
 
-Guest character animations use LimeZu’s free assets:
-- **Animated Mini Characters 2 (Platformer) [FREE]**
-- https://limezu.itch.io/animated-mini-characters-2-platform-free
+### 4.1 Install the Skill
 
-Please keep attribution when redistributing/demoing, and follow the original license terms.
+Copy `SKILL.md` from the repo into your OpenClaw workspace:
 
-### Commercial restriction (important)
+```bash
+cp SKILL.md ~/.openclaw/workspace/SKILL.md
+```
 
-- Code logic can be used/extended under MIT.
-- **All art assets in this repo (including main character/scene/full pack) are non-commercial.**
-- For commercial use, please replace all assets with your own original art.
+Your lobster will read it automatically and follow the deployment guide — starting the backend, setting up a public link, and prompting you for passwords and API keys.
+
+### 4.2 Automatic Status Sync
+
+Add the following rule to your `SOUL.md` (or agent config) so your lobster updates its status automatically:
+
+```markdown
+## Star Office Status Sync Rules
+- When starting a task: run `python3 set_state.py <state> "<description>"` before beginning work
+- When finishing a task: run `python3 set_state.py idle "Standing by"` before replying
+```
+
+**6 states → 3 office areas:**
+
+| State | Office Area | When to use |
+|-------|-------------|-------------|
+| `idle` | 🛋 Breakroom (sofa) | Standing by / task complete |
+| `writing` | 💻 Workspace (desk) | Writing code or docs |
+| `researching` | 💻 Workspace | Searching / researching |
+| `executing` | 💻 Workspace | Running commands / tasks |
+| `syncing` | 💻 Workspace | Syncing data / pushing |
+| `error` | 🐛 Bug Corner | Error / debugging |
+
+### 4.3 Invite Other Lobsters to Your Office
+
+**Step 1: Prepare join keys**
+
+The repo ships with `join-keys.json` (containing `ocj_starteam01` through `ocj_starteam08`), each supporting up to 3 concurrent users. Feel free to add your own keys.
+
+**Step 2: Have the guest run the push script**
+
+The guest only needs to download `office-agent-push.py` and fill in 3 variables:
+
+```python
+JOIN_KEY = "ocj_starteam02"          # The key you assign
+AGENT_NAME = "Alice's Lobster"       # Display name
+OFFICE_URL = "https://office.hyacinth.im"  # Your office URL
+```
+
+```bash
+python3 office-agent-push.py
+```
+
+The script auto-joins and pushes status every 15 seconds. The guest's lobster will appear on the dashboard, moving to the appropriate area based on its state.
+
+**Step 3 (optional): Guest installs a Skill**
+
+Guests can also use `frontend/join-office-skill.md` as a Skill — their lobster will handle setup and pushing automatically.
+
+> See [`frontend/join-office-skill.md`](./frontend/join-office-skill.md) for full guest onboarding instructions.
 
 ---
 
-## VI. Open-source license & notice
+## 📡 API Reference
 
-- **Code / Logic: MIT** (see `LICENSE`)
-- **Art Assets: non-commercial, learning/demo only**
-
-Forks, idea sharing, and PRs are welcome. Please strictly respect asset-usage boundaries.
-
----
-
-## VII. Looking forward to more creative extensions
-
-You can extend this framework with:
-- richer state semantics and automation orchestration
-- multi-room / multi-team collaboration maps
-- task boards, timelines, auto daily reports
-- more complete access control and permissions
-
-If you build something cool, feel free to share!
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check |
+| `GET /status` | Get main agent status |
+| `POST /set_state` | Set main agent status |
+| `GET /agents` | List all agents |
+| `POST /join-agent` | Guest joins the office |
+| `POST /agent-push` | Guest pushes status |
+| `POST /leave-agent` | Guest leaves |
+| `GET /yesterday-memo` | Get yesterday's memo |
+| `GET /config/gemini` | Get Gemini API config |
+| `POST /config/gemini` | Set Gemini API config |
+| `GET /assets/generate-rpg-background/poll` | Poll image generation progress |
 
 ---
 
-## VIII. Project authors
+## 🖥 Desktop Pet Mode (Optional)
+
+The `desktop-pet/` directory contains a **Tauri**-based desktop wrapper that turns the pixel office into a transparent desktop widget.
+
+```bash
+cd desktop-pet
+npm install
+npm run dev
+```
+
+- Auto-launches the Python backend on startup
+- Window points to `http://127.0.0.1:18791/?desktop=1` by default
+- Customizable via environment variables for project path and Python path
+
+> ⚠️ This is an **optional, experimental feature**, primarily developed and tested on macOS. See [`desktop-pet/README.md`](./desktop-pet/README.md) for details.
+
+---
+
+## 🎨 Art Assets & License
+
+### Asset Attribution
+
+Guest character animations use free assets by **LimeZu**:
+- [Animated Mini Characters 2 (Platformer) [FREE]](https://limezu.itch.io/animated-mini-characters-2-platform-free)
+
+Please keep attribution when redistributing or demoing, and follow the original license terms.
+
+### License
+
+- **Code / Logic: MIT** (see [`LICENSE`](./LICENSE))
+- **Art Assets: Non-commercial use only** (learning / demo / sharing)
+
+> For commercial use, replace all art assets with your own original artwork.
+
+---
+
+## 👥 Authors
 
 This project is co-created and maintained by **Ring Hyacinth** and **Simon Lee**.
 
-- **X: Ring Hyacinth (@ring_hyacinth)**
-  https://x.com/ring_hyacinth
-- **X: Simon Lee (@simonxxoo)**
-  https://x.com/simonxxoo
+- **Ring Hyacinth** — [@ring_hyacinth](https://x.com/ring_hyacinth)
+- **Simon Lee** — [@simonxxoo](https://x.com/simonxxoo)
 
 ---
 
-## IX. 2026-03 Incremental Updates (added on top of the original version)
+## 📝 Changelog
 
-> This section records only new/changed items. Other parts keep the original structure.
-
-### A) Recommended image models for room renovation (New)
-
-For the “Move Home / Find Agent” workflow, it is recommended to connect your own Gemini API and prioritize:
-
-1. **gemini nanobanana pro**
-2. **gemini nanobanana 2**
-
-Other models may be less stable for preserving room structure + style consistency.
-
-Recommended config:
-
-- `GEMINI_API_KEY`
-- `GEMINI_MODEL` (recommend `nanobanana-pro` or `nanobanana-2`)
-
-Runtime config endpoints are also supported:
-- `GET /config/gemini`
-- `POST /config/gemini`
-
-If API key is missing, the sidebar will show an input entry so users can fill it in and retry directly.
-
-### B) Asset drawer passcode (New)
-
-The asset sidebar can modify layout, decoration, and default positions.
-
-Current default:
-- `ASSET_DRAWER_PASS=1234`
-
-Suggested user-facing guidance:
-1. Use default password `1234` for quick trial first;
-2. Users can ask you to change the password anytime;
-3. Recommend switching to a strong password as soon as possible.
-
-Example:
-
-```bash
-export ASSET_DRAWER_PASS="your-strong-pass"
-```
-
-Why this matters:
-- Prevents anyone with the public link from changing your room layout/assets.
-
-### C) Three reminders for the owner after successful install (New)
-
-1. **Temporary public link**
-   - Send the `trycloudflare` temporary link to the owner.
-   - Explain that you can later migrate to their own domain step by step.
-
-2. **Room renovation entry**
-   - Remind the owner to click “装修房间” to start.
-   - Default password is `1234`.
-   - If they want to change password, they can ask you anytime.
-   - Recommend upgrading to a strong password.
-
-3. **Image API setup**
-   - Image generation uses the user’s own API.
-   - Current integration uses Gemini official API format/address.
-   - If switching to another API provider, ask for API docs first so you can adapt correctly.
-
-### D) Runtime status usage recommendation (New)
-
-Recommend that the Agent proactively maintains status:
-
-1. Before taking a task, switch to a working state (`writing` / `researching` / `executing`) first;
-2. After task completion, switch to `idle` first, then enter rest/waiting mode.
-
-This makes the office dashboard feel more real-time and continuous.
-
-### E) Art & copyright wording update (Important)
-
-A major focus of this rebuild is the asset system upgrade (large-scale replacement + naming/index remapping).
-
-Policy remains:
-
-- Code logic: MIT
-- Art assets: non-commercial (learning/demo/sharing only)
+| Date | Summary | Details |
+|------|---------|---------|
+| 2026-03-01 | 🎉 **v2 Rebuild** — Trilingual support, asset management system, AI room design, full art asset overhaul | [`docs/FEATURES_NEW_2026-03-01.md`](./docs/FEATURES_NEW_2026-03-01.md) |
+| 2026-03-03 | 📋 Open-source release checklist completed | [`docs/OPEN_SOURCE_RELEASE_CHECKLIST.md`](./docs/OPEN_SOURCE_RELEASE_CHECKLIST.md) |
+| 2026-03-04 | 🔒 P0/P1 Security hardening — weak password blocking, backend refactor, stale-state auto-idle, skeleton loading | [`docs/UPDATE_REPORT_2026-03-04_P0_P1.md`](./docs/UPDATE_REPORT_2026-03-04_P0_P1.md) |
+| 2026-03-05 | 📱 Stability fixes — CDN cache fix, async image generation, mobile sidebar UX, join key expiration & concurrency | [`docs/UPDATE_REPORT_2026-03-05.md`](./docs/UPDATE_REPORT_2026-03-05.md) |
 
 ---
 
-
-### F) 2026-03-04 P0/P1 Security & Stability Update (New)
-
-This patch focuses on **production readiness + truthful status sync**, while preserving existing core features:
-
-1. **P0 Security baseline**
-   - Added production hardening checks (weak secret / weak password guard)
-   - Hardened session cookie settings
-   - Added `scripts/security_check.py` for pre-deploy checks
-
-2. **P1 Refactor (no behavior change)**
-   - Split backend helpers into `security_utils.py`, `memo_utils.py`, `store_utils.py`
-   - Reduced `app.py` coupling and improved maintainability
-
-3. **Status-sync & UX improvements**
-   - Fixed state-source path priority
-   - Added stale-state auto-idle to reduce false-working states
-   - Improved first-screen UX (skeleton + deferred non-critical init)
-
-4. **Service stability fixes**
-   - Unified and stabilized `star-office-ui.service` on port 18888
-   - Better coordination with `star-office-push.service` to reduce 502 risk
-
-> Detailed notes: `docs/UPDATE_REPORT_2026-03-04_P0_P1.md`
-
-### G) 2026-03-05 Stability Fixes & Mobile Optimization (New)
-
-This update covers 8 commits, focusing on "frontend loading fixes + async image generation + mobile UX":
-
-1. **Frontend loading fixes**
-   - Fixed CDN caching 404 responses causing page load failure (long-cache now only for 2xx)
-   - Fixed stray `else` block in `fetchStatus()` causing JS syntax error
-
-2. **Async image generation**
-   - Room background generation now runs as a background task + frontend polling, avoiding Cloudflare 524 timeout
-   - New `GET /assets/generate-rpg-background/poll` endpoint
-   - Frontend shows real-time generation progress
-
-3. **Mobile sidebar optimization**
-   - Added backdrop overlay; tap to close drawer
-   - Body scroll lock when drawer is open, scroll position restored on close
-   - Drawer moves completely off-screen when closed (`right: -100vw`)
-   - Adapted `100dvh` + `overscroll-behavior: contain`
-
-4. **Join Key expiration & concurrency control**
-   - Key-level `expiresAt` expiration support
-   - `maxConcurrent` to control per-key concurrent online limit
-   - `join-keys.json` added to `.gitignore` (runtime data excluded from repo)
-
-> Detailed notes: `docs/UPDATE_REPORT_2026-03-05.md`
-
-## Project structure (simplified)
+## 📁 Project Structure
 
 ```text
-star-office-ui/
-  backend/
-    app.py
-    requirements.txt
-    run.sh
-  frontend/
-    index.html
-    join.html
-    invite.html
-    layout.js
-    ...assets
-  docs/
-    screenshots/
-  office-agent-push.py
-  set_state.py
-  state.sample.json
-  join-keys.json
-  SKILL.md
-  README.md
-  README.en.md
-  README.ja.md
-  LICENSE
+Star-Office-UI/
+├── backend/            # Flask backend
+│   ├── app.py
+│   ├── requirements.txt
+│   └── run.sh
+├── frontend/           # Frontend pages & assets
+│   ├── index.html
+│   ├── join.html
+│   ├── invite.html
+│   └── layout.js
+├── desktop-pet/        # Tauri desktop wrapper (optional)
+├── docs/               # Documentation & screenshots
+│   └── screenshots/
+├── office-agent-push.py  # Guest push script
+├── set_state.py          # Status switch script
+├── state.sample.json     # State file template
+├── join-keys.json        # Join key config
+├── SKILL.md              # OpenClaw Skill
+└── LICENSE               # MIT License
 ```
+
+---
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/image?repos=ringhyacinth/Star-Office-UI&type=date&legend=top-left)](https://www.star-history.com/?repos=ringhyacinth%2FStar-Office-UI&type=date&legend=top-left)
