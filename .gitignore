@@ -36,3 +36,4 @@ desktop-pet/src-tauri/icons/*Logo.png
 # Electron local build artifacts
 electron-shell/node_modules/
 electron-shell/release/
+join-keys.json
