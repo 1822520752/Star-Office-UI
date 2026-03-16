@@ -90,102 +90,17 @@ function updateLoadingProgress() {
 function hideLoadingOverlay() {
   setTimeout(() => {
     if (loadingOverlay) {
-      loadingOverlay.style.transition = 'opacity 0.5s ease';
+      loadingOverlay.style.transition = 'opacity 0.3s ease';
       loadingOverlay.style.opacity = '0';
       setTimeout(() => {
         loadingOverlay.style.display = 'none';
-      }, 500);
+      }, 300);
     }
-  }, 300);
+  }, 100);
 }
 
-const STATES = {
-  idle: { name: '待命', area: 'breakroom' },
-  writing: { name: '整理文档', area: 'writing' },
-  researching: { name: '搜索信息', area: 'researching' },
-  executing: { name: '执行任务', area: 'writing' },
-  syncing: { name: '同步备份', area: 'writing' },
-  error: { name: '出错了', area: 'error' }
-};
-
-const BUBBLE_TEXTS = {
-  idle: [
-    '待命中：耳朵竖起来了',
-    '我在这儿，随时可以开工',
-    '先把桌面收拾干净再说',
-    '呼——给大脑放个风',
-    '今天也要优雅地高效',
-    '等待，是为了更准确的一击',
-    '咖啡还热，灵感也还在',
-    '我在后台给你加 Buff',
-    '状态：静心 / 充电',
-    '小猫说：慢一点也没关系'
-  ],
-  writing: [
-    '进入专注模式：勿扰',
-    '先把关键路径跑通',
-    '我来把复杂变简单',
-    '把 bug 关进笼子里',
-    '写到一半，先保存',
-    '把每一步都做成可回滚',
-    '今天的进度，明天的底气',
-    '先收敛，再发散',
-    '让系统变得更可解释',
-    '稳住，我们能赢'
-  ],
-  researching: [
-    '我在挖证据链',
-    '让我把信息熬成结论',
-    '找到了：关键在这里',
-    '先把变量控制住',
-    '我在查：它为什么会这样',
-    '把直觉写成验证',
-    '先定位，再优化',
-    '别急，先画因果图'
-  ],
-  executing: [
-    '执行中：不要眨眼',
-    '把任务切成小块逐个击破',
-    '开始跑 pipeline',
-    '一键推进：走你',
-    '让结果自己说话',
-    '先做最小可行，再做最美版本'
-  ],
-  syncing: [
-    '同步中：把今天锁进云里',
-    '备份不是仪式，是安全感',
-    '写入中…别断电',
-    '把变更交给时间戳',
-    '云端对齐：咔哒',
-    '同步完成前先别乱动',
-    '把未来的自己从灾难里救出来',
-    '多一份备份，少一份后悔'
-  ],
-  error: [
-    '警报响了：先别慌',
-    '我闻到 bug 的味道了',
-    '先复现，再谈修复',
-    '把日志给我，我会说人话',
-    '错误不是敌人，是线索',
-    '把影响面圈起来',
-    '先止血，再手术',
-    '我在：马上定位根因',
-    '别怕，这种我见多了',
-    '报警中：让问题自己现形'
-  ],
-  cat: [
-    '喵~',
-    '咕噜咕噜…',
-    '尾巴摇一摇',
-    '晒太阳最开心',
-    '有人来看我啦',
-    '我是这个办公室的吉祥物',
-    '伸个懒腰',
-    '今天的罐罐准备好了吗',
-    '呼噜呼噜',
-    '这个位置视野最好'
-  ]
-};
+const STATES = LAYOUT.states;
+const BUBBLE_TEXTS = LAYOUT.bubbleTexts;
 
 let game, star, sofa, serverroom, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
 let isMoving = false;
@@ -888,9 +803,13 @@ function showBubble() {
 
   const text = texts[Math.floor(Math.random() * texts.length)];
   const bubbleY = anchorY - 70;
-  const bg = game.add.rectangle(anchorX, bubbleY, text.length * 10 + 20, 28, 0xffffff, 0.95);
-  bg.setStrokeStyle(2, 0x000000);
+  
   const txt = game.add.text(anchorX, bubbleY, text, { fontFamily: 'ArkPixel, monospace', fontSize: '12px', fill: '#000', align: 'center' }).setOrigin(0.5);
+  // 动态计算背景宽度，增加 20px 边距
+  const bgWidth = txt.width + 20;
+  const bg = game.add.rectangle(anchorX, bubbleY, bgWidth, 28, 0xffffff, 0.95);
+  bg.setStrokeStyle(2, 0x000000);
+  
   bubble = game.add.container(0, 0, [bg, txt]);
   bubble.setDepth(1200);
   setTimeout(() => { if (bubble) { bubble.destroy(); bubble = null; } }, 3000);
@@ -903,9 +822,13 @@ function showCatBubble() {
   const text = texts[Math.floor(Math.random() * texts.length)];
   const anchorX = window.catSprite.x;
   const anchorY = window.catSprite.y - 60;
-  const bg = game.add.rectangle(anchorX, anchorY, text.length * 10 + 20, 24, 0xfffbeb, 0.95);
-  bg.setStrokeStyle(2, 0xd4a574);
+  
   const txt = game.add.text(anchorX, anchorY, text, { fontFamily: 'ArkPixel, monospace', fontSize: '11px', fill: '#8b6914', align: 'center' }).setOrigin(0.5);
+  // 动态计算背景宽度
+  const bgWidth = txt.width + 16;
+  const bg = game.add.rectangle(anchorX, anchorY, bgWidth, 24, 0xfffbeb, 0.95);
+  bg.setStrokeStyle(2, 0xd4a574);
+  
   window.catBubble = game.add.container(0, 0, [bg, txt]);
   window.catBubble.setDepth(2100);
   setTimeout(() => { if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; } }, 4000);

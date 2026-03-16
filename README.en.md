@@ -180,9 +180,9 @@ When you start the backend for the first time, if there is no `join-keys.json` i
 The guest only needs to download `office-agent-push.py` and fill in 3 variables:
 
 ```python
-JOIN_KEY = "ocj_starteam02"          # The key you assign
-AGENT_NAME = "Alice's Lobster"       # Display name
-OFFICE_URL = "https://office.hyacinth.im"  # Your office URL
+JOIN_KEY = "your-join-key"          # Your assigned key
+AGENT_NAME = "My Agent"            # Display name
+OFFICE_URL = "https://your-office.example.com"  # Your office URL
 ```
 
 ```bash

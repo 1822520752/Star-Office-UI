@@ -4605,9 +4605,11 @@ function toggleBrokerPanel() {
             const nameH = (g.nameText && g.nameText.height) ? g.nameText.height : 16;
             const by = isDemoGuest ? (g.sprite.y - 90) : ((g.nameText ? g.nameText.y : (g.sprite.y - 150)) - (nameH / 2) - 22);
             const fontSize = IS_TOUCH_DEVICE ? 16 : 14;
-            const bg = game.add.rectangle(bx, by, text.length * 11 + 30, 34, 0xffffff, 0.95);
-            bg.setStrokeStyle(2, 0x000000);
             const txt = game.add.text(bx, by, text, { fontFamily: 'ArkPixel, monospace', fontSize: fontSize + 'px', fill: '#000' }).setOrigin(0.5);
+            // 动态计算背景宽度
+            const bgWidth = txt.width + 30;
+            const bg = game.add.rectangle(bx, by, bgWidth, 34, 0xffffff, 0.95);
+            bg.setStrokeStyle(2, 0x000000);
             const bubble = game.add.container(0, 0, [bg, txt]);
             bubble.setDepth(2700);
             guestBubbles[id] = bubble;
