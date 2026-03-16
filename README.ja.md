@@ -180,9 +180,9 @@ python3 scripts/smoke_test.py --base-url http://127.0.0.1:19000
 ゲストは `office-agent-push.py` をダウンロードし、3 つの変数を入力するだけ：
 
 ```python
-JOIN_KEY = "ocj_starteam02"          # あなたが割り当てたキー
-AGENT_NAME = "太郎のロブスター"        # 表示名
-OFFICE_URL = "https://office.hyacinth.im"  # あなたのオフィス URL
+JOIN_KEY = "your-join-key"          # 割り当てられたキー
+AGENT_NAME = "My Agent"            # 表示名
+OFFICE_URL = "https://your-office.example.com"  # あなたのオフィス URL
 ```
 
 ```bash

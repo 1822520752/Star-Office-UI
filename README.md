@@ -181,9 +181,9 @@ python3 scripts/smoke_test.py --base-url http://127.0.0.1:19000
 访客只需下载 `office-agent-push.py`，填写 3 个变量即可：
 
 ```python
-JOIN_KEY = "ocj_starteam02"          # 你分配的 key
-AGENT_NAME = "小明的龙虾"            # 显示名称
-OFFICE_URL = "https://office.hyacinth.im"  # 你的办公室地址
+JOIN_KEY = "your-join-key"          # 你分配的 key
+AGENT_NAME = "My Agent"            # 显示名称
+OFFICE_URL = "https://your-office.example.com"  # 你的办公室地址
 ```
 
 ```bash
