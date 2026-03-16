@@ -45,11 +45,15 @@ def is_strong_pass(v: str) -> bool:
     return len(s) >= 8
 
 
-def tracked_files() -> list[str]:
-    code, out, _ = run(["git", "ls-files"])
+def tracked_files() -> tuple[list[str], str]:
+    code, out, err = run(["git", "ls-files"])
     if code != 0:
-        return []
-    return [x for x in out.splitlines() if x.strip()]
+        msg = err or out or f"exit={code}"
+        return [], f"git ls-files failed; skip tracked-file scan ({msg})"
+    files = [x for x in out.splitlines() if x.strip()]
+    if not files:
+        return [], "git ls-files returned empty; skip tracked-file scan"
+    return files, ""
 
 
 def file_has_secret_pattern(path: Path) -> list[str]:
@@ -63,6 +67,9 @@ def file_has_secret_pattern(path: Path) -> list[str]:
         (r"AIza[0-9A-Za-z\-_]{20,}", "Google/Gemini API key-like token"),
         (r"sk-[A-Za-z0-9]{16,}", "Generic sk-* token"),
         (r"AKIA[0-9A-Z]{16}", "AWS access key-like token"),
+        (r"gh[pousr]_[A-Za-z0-9]{36,}", "GitHub token-like token"),
+        (r"github_pat_[A-Za-z0-9_]{50,}", "GitHub fine-grained PAT-like token"),
+        (r"xox[baprs]-[A-Za-z0-9-]{20,}", "Slack token-like token"),
     ]
     for pat, label in patterns:
         if re.search(pat, text):
@@ -93,8 +100,11 @@ def main() -> int:
         if not drawer_pass:
             warnings.append("ASSET_DRAWER_PASS not set (defaults may be unsafe for public exposure)")
 
-    tracked = tracked_files()
+    tracked, git_warn = tracked_files()
+    if git_warn:
+        warnings.append(git_warn)
     risky_tracked = [
+        ".env",
         "runtime-config.json",
         "join-keys.json",
         "office-agent-state.json",
@@ -104,13 +114,35 @@ def main() -> int:
             failures.append(f"Risky runtime file is tracked by git: {f}")
 
     # scan tracked text-ish files for common secret patterns
+    allowed_exts = {
+        ".py",
+        ".md",
+        ".txt",
+        ".json",
+        ".yml",
+        ".yaml",
+        ".toml",
+        ".js",
+        ".ts",
+        ".tsx",
+        ".html",
+        ".css",
+        ".sh",
+        ".ps1",
+        ".bat",
+        ".cmd",
+    }
     for rel in tracked:
         if rel.startswith(".git/"):
+            continue
+        if rel.endswith(".min.js"):
             continue
         p = ROOT / rel
         if not p.exists() or p.is_dir():
             continue
         if p.stat().st_size > 2_000_000:
+            continue
+        if p.suffix and p.suffix.lower() not in allowed_exts:
             continue
         hits = file_has_secret_pattern(p)
         for h in hits:
