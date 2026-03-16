@@ -237,6 +237,21 @@ npm run dev
 
 ---
 
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. **Fork** the project
+2. **Clone** your fork locally
+3. **Create your Feature Branch** (`git checkout -b feature/AmazingFeature`)
+4. **Commit your Changes** (`git commit -m 'Add some AmazingFeature'`)
+5. **Push to the Branch** (`git push origin feature/AmazingFeature`)
+6. **Open a Pull Request**
+
+> 💡 **Want to join the contributor list?** Check for `TODO` tags in the code or the pending tasks in [`docs/OPEN_SOURCE_RELEASE_CHECKLIST.md`](./docs/OPEN_SOURCE_RELEASE_CHECKLIST.md).
+
+---
+
 ## 🎨 Art Assets & License
 
 ### Asset Attribution

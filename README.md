@@ -238,6 +238,21 @@ npm run dev
 
 ---
 
+## 🤝 参与贡献
+
+我们非常欢迎各种形式的贡献！无论是修复 Bug、改进文档，还是提出新的功能建议。
+
+1. **Fork** 本仓库
+2. **Clone** 你的 Fork 仓库到本地
+3. **创建分支**: `git checkout -b feature/your-feature-name`
+4. **提交更改**: `git commit -m "feat: add some amazing feature"`
+5. **推送分支**: `git push origin feature/your-feature-name`
+6. **开启 Pull Request**
+
+> 💡 **想要出现在贡献榜？** 关注项目中的 `TODO` 标记或 [`docs/OPEN_SOURCE_RELEASE_CHECKLIST.md`](./docs/OPEN_SOURCE_RELEASE_CHECKLIST.md) 中的待办事项。
+
+---
+
 ## 🎨 美术资产与开源许可
 
 ### 资产来源

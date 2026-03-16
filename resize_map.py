@@ -36,6 +36,18 @@ def resize_map(input_path, output_path, target_short_edge=600):
     print(f"Short edge scale: {scale:.2f}x")
 
 if __name__ == "__main__":
-    input_path = "/root/.openclaw/media/inbound/6b352c7d-f09f-4dd7-9916-a312fb60122b.png"
-    output_path = "/root/.openclaw/workspace/star-office-ui/frontend/office_bg.png"
-    resize_map(input_path, output_path, target_short_edge=720)
+    import argparse
+    import os
+
+    parser = argparse.ArgumentParser(description="Resize office map by SHORT EDGE scaling.")
+    parser.add_argument("input", help="Input image path")
+    parser.add_argument("output", help="Output image path")
+    parser.add_argument("--short-edge", type=int, default=720, help="Target short edge length (default: 720)")
+
+    args = parser.parse_args()
+
+    if not os.path.exists(args.input):
+        print(f"Error: Input file '{args.input}' not found.")
+        exit(1)
+
+    resize_map(args.input, args.output, target_short_edge=args.short_edge)

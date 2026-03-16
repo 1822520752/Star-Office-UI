@@ -237,6 +237,21 @@ npm run dev
 
 ---
 
+## 🤝 貢献する
+
+貢献はオープンソースコミュニティを学び、インスピレーションを与え、創造するための素晴らしい場所にしているものです。皆様の貢献は**非常に感謝されています**。
+
+1. プロジェクトを **Fork** する
+2. ローカルに **Clone** する
+3. **フィーチャーブランチ**を作成する (`git checkout -b feature/AmazingFeature`)
+4. 変更を **Commit** する (`git commit -m 'Add some AmazingFeature'`)
+5. ブランチを **Push** する (`git push origin feature/AmazingFeature`)
+6. **Pull Request** を作成する
+
+> 💡 **コントリビューターリストに参加したいですか？** コード内の `TODO` タグや [`docs/OPEN_SOURCE_RELEASE_CHECKLIST.md`](./docs/OPEN_SOURCE_RELEASE_CHECKLIST.md) の保留中のタスクを確認してください。
+
+---
+
 ## 🎨 アート資産とライセンス
 
 ### 資産の出典

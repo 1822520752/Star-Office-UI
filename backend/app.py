@@ -1212,6 +1212,7 @@ def agent_push():
         name = (data.get("name") or "").strip()
 
         if not agent_id or not join_key or not state:
+            print(f"[agent-push] Missing required fields: agentId={agent_id}, joinKey={'***' if join_key else 'None'}, state={state}")
             return jsonify({"ok": False, "msg": "缺少 agentId/joinKey/state"}), 400
 
         state = normalize_agent_state(state)
@@ -1219,6 +1220,7 @@ def agent_push():
         keys_data = load_join_keys()
         key_item = next((k for k in keys_data.get("keys", []) if k.get("key") == join_key), None)
         if not key_item:
+            print(f"[agent-push] Invalid joinKey: {join_key}")
             return jsonify({"ok": False, "msg": "joinKey 无效"}), 403
 
         # Key-level expiration check
@@ -1235,6 +1237,7 @@ def agent_push():
         agents = load_agents_state()
         target = next((a for a in agents if a.get("agentId") == agent_id and not a.get("isMain")), None)
         if not target:
+            print(f"[agent-push] Agent not registered: {agent_id}")
             return jsonify({"ok": False, "msg": "agent 未注册，请先 join"}), 404
 
         # Auth check: only approved agents can push.
@@ -1242,13 +1245,16 @@ def agent_push():
         # Allow offline agents to resume pushing and auto-promote them back to approved.
         auth_status = target.get("authStatus", "pending")
         if auth_status not in {"approved", "offline"}:
+            print(f"[agent-push] Agent not approved: {agent_id}, status: {auth_status}")
             return jsonify({"ok": False, "msg": "agent 未获授权，请等待主人批准"}), 403
         if auth_status == "offline":
             target["authStatus"] = "approved"
             target["authApprovedAt"] = datetime.now().isoformat()
             target["authExpiresAt"] = (datetime.now() + timedelta(hours=24)).isoformat()
+            print(f"[agent-push] Agent {agent_id} ({target.get('name')}) resumed from offline")
 
         if target.get("joinKey") != join_key:
+            print(f"[agent-push] joinKey mismatch for {agent_id}: provided={join_key}, stored={target.get('joinKey')}")
             return jsonify({"ok": False, "msg": "joinKey 不匹配"}), 403
 
         target["state"] = state
