@@ -8,10 +8,11 @@ Notes:
 """
 
 import os
+from typing import Optional
 from PIL import Image
 
 
-def webp_to_spritesheet(in_path: str, out_path: str, frame_w: int, frame_h: int, max_frames: int | None = None):
+def webp_to_spritesheet(in_path: str, out_path: str, frame_w: int, frame_h: int, max_frames: Optional[int] = None):
     im = Image.open(in_path)
     n = getattr(im, 'n_frames', 1)
     if max_frames:

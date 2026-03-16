@@ -29,7 +29,9 @@ https://github.com/ringhyacinth/Star-Office-UI/blob/master/SKILL.md
 
 ### 方式二：30 秒手动部署
 
-> **环境要求：Python 3.10+**（代码使用了 `X | Y` union type 语法，不支持 3.9 及更低版本）
+> **环境要求：Python 3.8+**
+>
+> Windows 用户请看：[docs/WINDOWS_SETUP.md](./docs/WINDOWS_SETUP.md)
 
 ```bash
 # 1) 下载仓库
@@ -89,6 +91,8 @@ python3 set_state.py idle "待命中"
 ---
 
 ## 🚀 详细部署指南
+
+> Windows 用户请看：[docs/WINDOWS_SETUP.md](./docs/WINDOWS_SETUP.md)
 
 ### 1) 安装依赖
 

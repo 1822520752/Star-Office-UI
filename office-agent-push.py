@@ -42,10 +42,8 @@ OPENCLAW_WORKSPACE_DIR = os.environ.get("OPENCLAW_WORKSPACE_DIR") or os.path.joi
 
 DEFAULT_STATE_CANDIDATES = [
     os.path.join(OPENCLAW_WORKSPACE_DIR, "star-office-ui", "state.json"),
+    os.path.join(OPENCLAW_WORKSPACE_DIR, "Star-Office-UI", "state.json"),
     os.path.join(OPENCLAW_WORKSPACE_DIR, "state.json"),
-    "/root/.openclaw/workspace/Star-Office-UI/state.json",  # 当前仓库（大小写精确）
-    "/root/.openclaw/workspace/star-office-ui/state.json",  # 历史/兼容路径
-    "/root/.openclaw/workspace/state.json",
     os.path.join(os.getcwd(), "state.json"),
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.json"),
 ]
@@ -56,6 +54,37 @@ LOCAL_STATUS_URL = os.environ.get("OFFICE_LOCAL_STATUS_URL", "http://127.0.0.1:1
 # 可选：直接指定本地状态文件路径（最简单方案：绕过 /status 鉴权）
 LOCAL_STATE_FILE = os.environ.get("OFFICE_LOCAL_STATE_FILE", "")
 VERBOSE = os.environ.get("OFFICE_VERBOSE", "0") in {"1", "true", "TRUE", "yes", "YES"}
+
+# === Logging with simple color support ===
+# Use colors by default if output is a TTY and not on Windows, or if forced via env.
+# On Windows, modern terminals support ANSI, but we check for 'True' if forced.
+_USE_COLOR = sys.stdout.isatty() and (os.name != "nt" or os.environ.get("OFFICE_COLOR") == "1")
+if os.environ.get("OFFICE_COLOR") == "0":
+    _USE_COLOR = False
+
+def log_info(msg):
+    if _USE_COLOR:
+        print(f"\033[94m[*]\033[0m {msg}")
+    else:
+        print(f"[*] {msg}")
+
+def log_success(msg):
+    if _USE_COLOR:
+        print(f"\033[92m[+]\033[0m {msg}")
+    else:
+        print(f"[+] {msg}")
+
+def log_warn(msg):
+    if _USE_COLOR:
+        print(f"\033[93m[!]\033[0m {msg}")
+    else:
+        print(f"[!] {msg}")
+
+def log_error(msg):
+    if _USE_COLOR:
+        print(f"\033[91m[x]\033[0m {msg}")
+    else:
+        print(f"[x] {msg}")
 
 
 def load_local_state():
@@ -166,7 +195,7 @@ def fetch_local_status():
                         detail = f"本地状态超过{STALE_STATE_TTL_SECONDS}s未更新，自动回待命"
 
                     if VERBOSE:
-                        print(f"[status-source:file] path={fp} state={state} detail={detail[:60]}")
+                        log_info(f"[status-source:file] path={fp} state={state} detail={detail[:60]}")
                     return {"state": state, "detail": detail}
         except Exception:
             pass
@@ -190,7 +219,7 @@ def fetch_local_status():
                 detail = f"本地/status 超过{STALE_STATE_TTL_SECONDS}s未更新，自动回待命"
 
             if VERBOSE:
-                print(f"[status-source:http] url={LOCAL_STATUS_URL} state={state} detail={detail[:60]}")
+                log_info(f"[status-source:http] url={LOCAL_STATUS_URL} state={state} detail={detail[:60]}")
             return {"state": state, "detail": detail}
         # 如果 401，说明需要 token
         if r.status_code == 401:
@@ -200,7 +229,7 @@ def fetch_local_status():
 
     # 3) 默认 fallback
     if VERBOSE:
-        print("[status-source:fallback] state=idle detail=待命中")
+        log_info("[status-source:fallback] state=idle detail=待命中")
     return {"state": "idle", "detail": "待命中"}
 
 
@@ -219,9 +248,9 @@ def do_join(local):
             local["joined"] = True
             local["agentId"] = data.get("agentId")
             save_local_state(local)
-            print(f"✅ 已加入海辛办公室，agentId={local['agentId']}")
+            log_success(f"已加入海辛办公室，agentId={local['agentId']}")
             return True
-    print(f"❌ 加入失败：{r.text}")
+    log_error(f"加入失败：{r.text}")
     return False
 
 
@@ -239,7 +268,7 @@ def do_push(local, status_data):
         data = r.json()
         if data.get("ok"):
             area = data.get("area", "breakroom")
-            print(f"✅ 状态已同步，当前区域={area}")
+            log_success(f"状态已同步，当前区域={area}")
             return True
 
     # 403/404：拒绝/移除 → 停止推送
@@ -249,13 +278,13 @@ def do_push(local, status_data):
             msg = (r.json() or {}).get("msg", "")
         except Exception:
             msg = r.text
-        print(f"⚠️  访问拒绝或已移出房间（{r.status_code}），停止推送：{msg}")
+        log_warn(f"访问拒绝或已移出房间（{r.status_code}），停止推送：{msg}")
         local["joined"] = False
         local["agentId"] = None
         save_local_state(local)
         sys.exit(1)
 
-    print(f"⚠️  推送失败：{r.text}")
+    log_warn(f"推送失败：{r.text}")
     return False
 
 
@@ -264,18 +293,18 @@ def main():
 
     # Startup hint for state source and URL (helps with port/state issues, e.g. issue #31)
     if LOCAL_STATE_FILE:
-        print(f"State file: {LOCAL_STATE_FILE}")
+        log_info(f"State file: {LOCAL_STATE_FILE}")
     else:
         first_existing = next((p for p in DEFAULT_STATE_CANDIDATES if p and os.path.exists(p)), None)
         if first_existing:
-            print(f"State file (auto): {first_existing}")
+            log_info(f"State file (auto): {first_existing}")
         else:
-            print("State file: auto-discover (set OFFICE_LOCAL_STATE_FILE if state not found)")
-    print(f"Local status URL: {LOCAL_STATUS_URL} (set OFFICE_LOCAL_STATUS_URL if backend uses another port)")
+            log_info("State file: auto-discover (set OFFICE_LOCAL_STATE_FILE if state not found)")
+    log_info(f"Local status URL: {LOCAL_STATUS_URL} (set OFFICE_LOCAL_STATUS_URL if backend uses another port)")
 
     # 先确认配置是否齐全
     if not JOIN_KEY or not AGENT_NAME:
-        print("❌ 请先在脚本开头填入 JOIN_KEY 和 AGENT_NAME")
+        log_error("请先在脚本开头填入 JOIN_KEY 和 AGENT_NAME")
         sys.exit(1)
 
     # 如果之前没 join，先 join
@@ -285,16 +314,16 @@ def main():
             sys.exit(1)
 
     # 持续推送
-    print(f"🚀 开始持续推送状态，间隔={PUSH_INTERVAL_SECONDS}秒")
-    print("🧭 状态逻辑：任务中→工作区；待命/完成→休息区；异常→bug区")
-    print("🔐 若本地 /status 返回 Unauthorized(401)，请设置环境变量：OFFICE_LOCAL_STATUS_TOKEN 或 OFFICE_LOCAL_STATUS_URL")
+    log_info(f"开始持续推送状态，间隔={PUSH_INTERVAL_SECONDS}秒")
+    log_info("🧭 状态逻辑：任务中→工作区；待命/完成→休息区；异常→bug区")
+    log_info("🔐 若本地 /status 返回 Unauthorized(401)，请设置环境变量：OFFICE_LOCAL_STATUS_TOKEN 或 OFFICE_LOCAL_STATUS_URL")
     try:
         while True:
             try:
                 status_data = fetch_local_status()
                 do_push(local, status_data)
             except Exception as e:
-                print(f"⚠️  推送异常：{e}")
+                log_warn(f"推送异常：{e}")
             time.sleep(PUSH_INTERVAL_SECONDS)
     except KeyboardInterrupt:
         print("\n👋 停止推送")

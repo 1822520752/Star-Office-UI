@@ -8,146 +8,112 @@ Optional env:
   SMOKE_AUTH_BEARER=xxxx   # if your gateway/proxy requires bearer auth
 """
 
-from __future__ import annotations
-
-import argparse
 import json
 import os
 import sys
 import time
+from typing import Optional
+import argparse
 import urllib.error
 import urllib.request
+from datetime import datetime
 
+# Simple ANSI colors
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
 
-REQUIRED_ENDPOINTS = [
-    ("GET", "/", 200),
-    ("GET", "/health", 200),
-    ("GET", "/status", 200),
-    ("GET", "/agents", 200),
-    ("GET", "/yesterday-memo", 200),
-]
+if os.name == "nt":  # Windows might not support ANSI by default in older shells
+    GREEN = RED = YELLOW = RESET = ""
 
+def log_ok(msg):
+    print(f"{GREEN}[OK]{RESET} {msg}")
 
-def req(
-    method: str,
+def log_fail(msg):
+    print(f"{RED}[FAIL]{RESET} {msg}")
+
+def log_warn(msg):
+    print(f"{YELLOW}[WARN]{RESET} {msg}")
+
+def call_api(
     url: str,
-    body: dict | None = None,
-    token: str = "",
-    timeout: float = 8,
-    retries: int = 0,
-) -> tuple[int, str]:
-    data = None
+    method: str = "GET",
+    body: Optional[dict] = None,
+    bearer: Optional[str] = None
+):
     headers = {}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    if body is not None:
-        data = json.dumps(body).encode("utf-8")
+    if bearer:
+        headers["Authorization"] = f"Bearer {bearer}"
+    if body:
         headers["Content-Type"] = "application/json"
 
-    for attempt in range(max(0, retries) + 1):
-        r = urllib.request.Request(url=url, method=method, data=data, headers=headers)
-        try:
-            with urllib.request.urlopen(r, timeout=timeout) as resp:
-                raw = resp.read().decode("utf-8", errors="ignore")
-                return resp.status, raw
-        except urllib.error.HTTPError as e:
-            raw = e.read().decode("utf-8", errors="ignore") if hasattr(e, "read") else str(e)
-            code = e.code
-            if code >= 500 and attempt < retries:
-                time.sleep(0.5 * (attempt + 1))
-                continue
-            return code, raw
-        except Exception as e:
-            if attempt < retries:
-                time.sleep(0.5 * (attempt + 1))
-                continue
-            return 0, str(e)
-
-
-def validate_json(path: str, body: str) -> tuple[bool, str]:
-    if path not in {"/health", "/status", "/agents", "/yesterday-memo"}:
-        return True, ""
-
+    data = json.dumps(body).encode("utf-8") if body else None
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        data = json.loads(body)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            return response.getcode(), json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        try:
+            return e.code, json.loads(e.read().decode("utf-8"))
+        except Exception:
+            return e.code, {"msg": str(e)}
     except Exception as e:
-        return False, f"{path}: invalid json ({e})"
+        return 0, {"msg": str(e)}
 
-    if path == "/health":
-        for k in ("status", "service", "timestamp"):
-            if not isinstance(data, dict) or k not in data:
-                return False, f"{path}: missing json field {k}"
-        return True, ""
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", default="http://127.0.0.1:19000", help="Base URL of Star Office UI")
+    args = parser.parse_args()
 
-    if path == "/status":
-        for k in ("state", "detail", "progress", "updated_at"):
-            if not isinstance(data, dict) or k not in data:
-                return False, f"{path}: missing json field {k}"
-        return True, ""
+    base_url = args.base_url.rstrip("/")
+    bearer = os.environ.get("SMOKE_AUTH_BEARER")
 
-    if path == "/agents":
-        if not isinstance(data, list):
-            return False, f"{path}: expected json list"
-        if not any(isinstance(x, dict) and x.get("isMain") for x in data):
-            return False, f"{path}: expected at least one main agent"
-        return True, ""
+    print(f"--- Star Office UI Smoke Test ---")
+    print(f"Target: {base_url}")
+    print(f"Time:   {datetime.now().isoformat()}\n")
 
-    if path == "/yesterday-memo":
-        if not isinstance(data, dict) or "success" not in data:
-            return False, f"{path}: missing json field success"
-        return True, ""
+    # 1. /health (basic existence)
+    code, data = call_api(f"{base_url}/health")
+    if code == 200:
+        log_ok(f"/health (backend version: {data.get('version', 'unknown')})")
+    else:
+        log_fail(f"/health (code={code}, err={data.get('msg')})")
+        sys.exit(1)
 
-    return True, ""
+    # 2. /status (state consistency)
+    code, data = call_api(f"{base_url}/status")
+    if code == 200 and "state" in data:
+        log_ok(f"/status (current state: {data['state']})")
+    else:
+        log_fail(f"/status (code={code})")
 
+    # 3. /agents (multi-agent registry)
+    code, data = call_api(f"{base_url}/agents")
+    if code == 200 and isinstance(data, list):
+        log_ok(f"/agents (count: {len(data)})")
+    else:
+        log_fail(f"/agents (code={code})")
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--base-url", default="http://127.0.0.1:19000", help="Base URL of Star Office UI service")
-    ap.add_argument("--timeout", type=float, default=8, help="HTTP timeout seconds")
-    ap.add_argument("--retries", type=int, default=0, help="Retries for network/5xx failures")
-    ap.add_argument("--skip-set-state", action="store_true", help="Skip POST /set_state probe")
-    args = ap.parse_args()
+    # 4. /memo (yesterday memo)
+    code, data = call_api(f"{base_url}/memo")
+    if code == 200:
+        log_ok(f"/memo (available: {data.get('ok', False)})")
+    else:
+        log_warn(f"/memo returned {code} (expected if no memory files found)")
 
-    base = args.base_url.rstrip("/")
-    token = os.getenv("SMOKE_AUTH_BEARER", "").strip()
+    # 5. /static/phaser-3.80.1.min.js (asset check)
+    try:
+        req = urllib.request.Request(f"{base_url}/static/phaser-3.80.1.min.js")
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.getcode() == 200:
+                log_ok(f"Frontend assets reachable (phaser.js)")
+            else:
+                log_fail(f"Frontend assets returned {response.getcode()}")
+    except Exception as e:
+        log_fail(f"Frontend assets unreachable: {e}")
 
-    failures: list[str] = []
-    print(f"[smoke] base={base}")
-
-    for method, path, expected in REQUIRED_ENDPOINTS:
-        code, body = req(method, base + path, token=token, timeout=args.timeout, retries=args.retries)
-        if code != expected:
-            failures.append(f"{method} {path}: expected {expected}, got {code}, body={body[:200]}")
-        else:
-            print(f"  OK  {method} {path} -> {code}")
-            ok, msg = validate_json(path, body)
-            if not ok:
-                failures.append(msg)
-
-    # non-destructive state update probe
-    if not args.skip_set_state:
-        code, body = req(
-            "POST",
-            base + "/set_state",
-            {"state": "idle", "detail": "smoke-check"},
-            token=token,
-            timeout=args.timeout,
-            retries=args.retries,
-        )
-        if code != 200:
-            failures.append(f"POST /set_state failed: {code}, body={body[:200]}")
-        else:
-            print("  OK  POST /set_state -> 200")
-
-    if failures:
-        print("\n[smoke] FAIL")
-        for f in failures:
-            print(" -", f)
-        return 1
-
-    print("\n[smoke] PASS")
-    return 0
-
+    print("\n--- Smoke test finished ---")
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

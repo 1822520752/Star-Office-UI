@@ -3,6 +3,7 @@
 
 from flask import Flask, jsonify, send_from_directory, make_response, request, session
 from datetime import datetime, timedelta
+from typing import Optional, Union, Dict, List, Any
 import json
 import os
 import random
@@ -99,6 +100,40 @@ join_lock = threading.Lock()
 # Avoids Cloudflare 524 timeout (100s limit) by letting frontend poll for completion.
 _bg_tasks = {}  # task_id -> {"status": "pending"|"done"|"error", "result": ..., "error": ..., "created_at": ...}
 _bg_tasks_lock = threading.Lock()
+
+
+def _cleanup_bg_tasks():
+    """Remove tasks older than 1 hour to prevent memory leak.
+    Called periodically during task creation or polling.
+    """
+    now = datetime.now()
+    with _bg_tasks_lock:
+        to_remove = []
+        for tid, task in _bg_tasks.items():
+            # If status is done or error, it should have been popped by poll,
+            # but we clean it anyway if it's too old (client never polled).
+            created_at_str = task.get("created_at")
+            if not created_at_str:
+                to_remove.append(tid)
+                continue
+            try:
+                # Tolerate both with/without timezone
+                dt = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+                if dt.tzinfo:
+                    from datetime import timezone
+                    age = (datetime.now(timezone.utc) - dt.astimezone(timezone.utc)).total_seconds()
+                else:
+                    age = (datetime.now() - dt).total_seconds()
+
+                if age > 3600:  # 1 hour TTL for background tasks
+                    to_remove.append(tid)
+            except Exception:
+                to_remove.append(tid)
+
+        for tid in to_remove:
+            _bg_tasks.pop(tid, None)
+        if to_remove:
+            print(f"[bg_tasks] cleaned up {len(to_remove)} stale tasks")
 
 # Generate a version timestamp once at server startup for cache busting
 VERSION_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -468,8 +503,8 @@ def _animated_to_spritesheet(
     out_ext: str = ".webp",
     preserve_original: bool = True,
     pixel_art: bool = True,
-    cols: int | None = None,
-    rows: int | None = None,
+    cols: Optional[int] = None,
+    rows: Optional[int] = None,
 ):
     """Convert animated GIF/WEBP to spritesheet, return (out_path, columns, rows, frames, out_frame_w, out_frame_h)."""
     backend = _ensure_magick_or_ffmpeg_available()
@@ -1404,6 +1439,7 @@ def _bg_generate_worker(task_id: str, custom_prompt: str, speed_mode: str):
 @app.route("/assets/generate-rpg-background", methods=["POST"])
 def assets_generate_rpg_background():
     """Start async RPG background generation. Returns a task_id for polling."""
+    _cleanup_bg_tasks()
     guard = _require_asset_editor_auth()
     if guard:
         return guard
@@ -1449,6 +1485,7 @@ def assets_generate_rpg_background():
 @app.route("/assets/generate-rpg-background/poll", methods=["GET"])
 def assets_generate_rpg_background_poll():
     """Poll async generation task status."""
+    _cleanup_bg_tasks()
     guard = _require_asset_editor_auth()
     if guard:
         return guard

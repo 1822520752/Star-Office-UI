@@ -29,7 +29,9 @@ Your lobster will automatically clone the repo, install dependencies, start the 
 
 ### Option 2: 30-second manual setup
 
-> **Requires Python 3.10+** (the codebase uses `X | Y` union type syntax, which is not supported on 3.9 or earlier)
+> **Requires Python 3.8+**
+>
+> Windows users: see [docs/WINDOWS_SETUP.md](./docs/WINDOWS_SETUP.md)
 
 ```bash
 # 1) Clone the repo
@@ -88,6 +90,8 @@ You can still deploy and use it. You can:
 ---
 
 ## 🚀 Detailed Setup Guide
+
+> Windows users: see [docs/WINDOWS_SETUP.md](./docs/WINDOWS_SETUP.md)
 
 ### 1) Install dependencies
 
