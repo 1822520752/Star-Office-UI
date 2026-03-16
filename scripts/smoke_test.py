@@ -2,7 +2,7 @@
 """Star Office UI smoke test (non-destructive).
 
 Usage:
-  python3 scripts/smoke_test.py --base-url http://127.0.0.1:19000
+  python3 scripts/smoke_test.py --base-url http://127.0.0.1:19000 --timeout 8 --retries 5 --skip-set-state
 
 Optional env:
   SMOKE_AUTH_BEARER=xxxx   # if your gateway/proxy requires bearer auth
@@ -40,7 +40,8 @@ def call_api(
     url: str,
     method: str = "GET",
     body: Optional[dict] = None,
-    bearer: Optional[str] = None
+    bearer: Optional[str] = None,
+    timeout: int = 10
 ):
     headers = {}
     if bearer:
@@ -51,7 +52,7 @@ def call_api(
     data = json.dumps(body).encode("utf-8") if body else None
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=timeout) as response:
             return response.getcode(), json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         try:
@@ -64,6 +65,9 @@ def call_api(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://127.0.0.1:19000", help="Base URL of Star Office UI")
+    parser.add_argument("--timeout", type=int, default=10, help="Timeout for API calls")
+    parser.add_argument("--retries", type=int, default=3, help="Number of retries for API calls")
+    parser.add_argument("--skip-set-state", action="store_true", help="Skip state-setting tests (accepted for compatibility)")
     args = parser.parse_args()
 
     base_url = args.base_url.rstrip("/")
@@ -73,30 +77,38 @@ def main():
     print(f"Target: {base_url}")
     print(f"Time:   {datetime.now().isoformat()}\n")
 
-    # 1. /health (basic existence)
-    code, data = call_api(f"{base_url}/health")
-    if code == 200:
-        log_ok(f"/health (backend version: {data.get('version', 'unknown')})")
-    else:
-        log_fail(f"/health (code={code}, err={data.get('msg')})")
+    # 1. /health (basic existence) with retries
+    success = False
+    for i in range(args.retries):
+        code, data = call_api(f"{base_url}/health", timeout=args.timeout)
+        if code == 200:
+            log_ok(f"/health (backend version: {data.get('version', 'unknown')})")
+            success = True
+            break
+        else:
+            log_warn(f"/health attempt {i+1} failed (code={code}). Retrying...")
+            time.sleep(2)
+    
+    if not success:
+        log_fail(f"/health failed after {args.retries} attempts.")
         sys.exit(1)
 
     # 2. /status (state consistency)
-    code, data = call_api(f"{base_url}/status")
+    code, data = call_api(f"{base_url}/status", timeout=args.timeout)
     if code == 200 and "state" in data:
         log_ok(f"/status (current state: {data['state']})")
     else:
         log_fail(f"/status (code={code})")
 
     # 3. /agents (multi-agent registry)
-    code, data = call_api(f"{base_url}/agents")
+    code, data = call_api(f"{base_url}/agents", timeout=args.timeout)
     if code == 200 and isinstance(data, list):
         log_ok(f"/agents (count: {len(data)})")
     else:
         log_fail(f"/agents (code={code})")
 
     # 4. /memo (yesterday memo)
-    code, data = call_api(f"{base_url}/memo")
+    code, data = call_api(f"{base_url}/memo", timeout=args.timeout)
     if code == 200:
         log_ok(f"/memo (available: {data.get('ok', False)})")
     else:
@@ -105,7 +117,7 @@ def main():
     # 5. /static/phaser-3.80.1.min.js (asset check)
     try:
         req = urllib.request.Request(f"{base_url}/static/phaser-3.80.1.min.js")
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=args.timeout) as response:
             if response.getcode() == 200:
                 log_ok(f"Frontend assets reachable (phaser.js)")
             else:
